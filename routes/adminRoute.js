@@ -67,14 +67,14 @@ router.get("/courses",adminAuth,async(req,res)=>{
 router.post("/courses",adminAuth,async(req,res)=>{
     const { title, discription,price } = req.body
 
-    await course.create({
+    const new_course = await course.create({
         title:title,
         discription:discription,
         price:price
     })
 
     res.json({
-        msg:"course created"
+        msg:"course created", courseID: new_course._id
     })
 })
 

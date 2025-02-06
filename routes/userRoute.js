@@ -63,15 +63,53 @@ router.post("/login",async (req,res)=>{
 
 })
 
-router.get("/courses",userAuth,async(req,res)=>{
+router.get("/courses",async(req,res)=>{
     const allCourse = await course.find()
     res.json({
         allCourse
     })
 })
-router.post("/courses/:courseId",userAuth,(req,res)=>{
-    const course = req.querry
+router.post("/courses/:courseId",userAuth,async(req,res)=>{
+    const cid = req.params.courseId
+    const token = req.headers.authorization
+    const words = token.split(" ");
+    const jwtToken = words[1];
+    const verifed = jwt.verify(jwtToken,process.env.JWT_PASS);
+    await user.updateOne({
+        username:verifed.username
+    },{
+        "$push":{
+            parchasedCourse: cid
+        }
+    });
+
+    const courseDetial = await course.findOne({
+        _id:cid
+    })
+    res.json({
+        msg:"purchased the course",courseDetial
+    })
+});
+
+router.get("/purchasedCourses",userAuth,async(req,res)=>{
+    const token = req.headers.authorization
+    const words = token.split(" ");
+    const jwtToken = words[1];
+    const verifed = jwt.verify(jwtToken,process.env.JWT_PASS);
+    const reqUser = await user.findOne({
+        username:verifed.username
+    })
+    const allCourse = []
+    for(i=0;i<reqUser.parchasedCourse.length;i++){
+        const cid = reqUser.parchasedCourse[i];
+        const cname = await course.findOne({
+            _id:cid
+        })
+        allCourse.push(cname.title)
+    }
+    res.json({
+        courses:allCourse
+    })
 })
-router.get("/purchasedCourses",userAuth)
 
 module.exports = router;
