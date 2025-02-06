@@ -1,6 +1,8 @@
 const { Router } = require('express');
-const { admin } = require('../models/dbModels');
-const bcrypt = require('bcrypt')
+const { admin, course } = require('../models/dbModels');
+const bcrypt = require('bcrypt');
+const adminAuth = require('../middleware/adminAuth');
+const jwt = require('jsonwebtoken')
 const router = Router(); 
 
 router.post("/signin",async(req,res)=>{
@@ -33,7 +35,7 @@ router.post("/signin",async(req,res)=>{
 })
 
 router.post("/login",async(req,res)=>{
-    const { email,password } = req.body;
+    const { username,email,password } = req.body;
 
     const exisintg_admin = await admin.findOne({
         email:email
@@ -52,13 +54,29 @@ router.post("/login",async(req,res)=>{
         })    
     }
 
-    res.status(200).json({
-        msg:"Login successful"
-    })
+    const token = jwt.sign({username},process.env.JWT_PASS,{expiresIn:'1h'})
+    console.log(token)
+    res.send("login succefully and got token");
 })
 
-router.get("/cources")
-router.post("/courses")
+router.get("/courses",adminAuth,async(req,res)=>{
+    const allCourse = await course.find();
+    res.json(allCourse);
+})
+
+router.post("/courses",adminAuth,async(req,res)=>{
+    const { title, discription,price } = req.body
+
+    await course.create({
+        title:title,
+        discription:discription,
+        price:price
+    })
+
+    res.json({
+        msg:"course created"
+    })
+})
 
 
 module.exports = router;

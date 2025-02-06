@@ -1,6 +1,8 @@
 const { Router } = require('express');
-const { user } = require('../models/dbModels');
-const bcrypt = require('bcrypt')
+const { user, course } = require('../models/dbModels');
+const bcrypt = require('bcrypt');
+const userAuth = require('../middleware/userAuth');
+const jwt = require("jsonwebtoken")
 const router = Router();
 
 router.post("/signin",async (req,res)=>{
@@ -36,8 +38,9 @@ router.post("/signin",async (req,res)=>{
 })
 
 router.post("/login",async (req,res)=>{
-    const { email,password } = req.body;
+    const { username,email,password } = req.body;
     const existing_user = await user.findOne({
+        username:username,
         email:email
     })
 
@@ -54,15 +57,21 @@ router.post("/login",async (req,res)=>{
         })
     }
 
-   res.status(200).json({
-    msg:"login succfull"
-   })
-
+    const token = jwt.sign({username},process.env.JWT_PASS,{expiresIn:'1h'})
+    console.log(token)
+    res.send("login succefully and got token");
 
 })
 
-router.get("/cources")
-router.post("/courses/:courseId")
-router.get("/purchasedCourses")
+router.get("/courses",userAuth,async(req,res)=>{
+    const allCourse = await course.find()
+    res.json({
+        allCourse
+    })
+})
+router.post("/courses/:courseId",userAuth,(req,res)=>{
+    const course = req.querry
+})
+router.get("/purchasedCourses",userAuth)
 
 module.exports = router;
