@@ -16,10 +16,8 @@ router.post("/signin",async (req,res)=>{
     if(existing){
         return res.json({
             msg:"user already exist please login."
-        })
-        
+        })   
     }
-
     try{
         const new_user = await user.create({
             username:username,
