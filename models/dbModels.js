@@ -4,8 +4,10 @@ const userSchema = new mongoose.Schema({
     username: String,
     email : String,
     password : String,
-    course : 
-    
+    parchasedCourse:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: 'course'
+    }]
 })
 
 const adminSchema = new mongoose.Schema({
